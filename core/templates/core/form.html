@@ -1,0 +1,12 @@
+{% extends "core/base.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block conteudo %}
+{% if obra %}<p class="muted"><a href="{% url 'obra_detalhe' obra.pk %}">← Voltar para {{ obra.nome }}</a></p>{% else %}<p class="muted"><a href="{% url 'painel' %}">← Voltar ao painel</a></p>{% endif %}
+<div class="card form-card">
+  <h1>{{ titulo }}</h1>
+  <form method="post" enctype="multipart/form-data">{% csrf_token %}
+    {% include "core/_campos.html" %}
+    <button class="btn" type="submit">Salvar</button>
+  </form>
+</div>
+{% endblock %}

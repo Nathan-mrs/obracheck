@@ -1,0 +1,11 @@
+{% extends "core/base.html" %}
+{% block conteudo %}
+<div class="card form-card">
+  <h1>Excluir “{{ objeto }}”?</h1>
+  <p>Essa ação não pode ser desfeita.</p>
+  <form method="post">{% csrf_token %}
+    <button class="btn btn-perigo" type="submit">Sim, excluir</button>
+    <a class="btn btn-sec" href="{% url 'obra_detalhe' voltar.pk %}">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

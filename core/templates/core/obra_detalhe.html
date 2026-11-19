@@ -1,0 +1,173 @@
+{% extends "core/base.html" %}
+{% load obracheck %}
+{% block titulo %}{{ obra.nome }}{% endblock %}
+{% block conteudo %}
+<p class="muted"><a href="{% url 'painel' %}">← Painel</a></p>
+<div class="cabecalho">
+  <div>
+    <h1>{{ obra.nome }} <span class="selo selo-{{ obra.status }}">{{ obra.get_status_display }}</span>{% if obra.atrasada %} <span class="selo selo-atraso">entrega atrasada</span>{% endif %}</h1>
+    <div class="muted">📍 {{ obra.endereco }} · {{ obra.data_inicio|date:"d/m/Y" }} → {{ obra.data_prevista|date:"d/m/Y" }}</div>
+    <div class="muted">
+      {% if user.is_construtora %}👤 Dono da obra: {% if obra.dono %}<b>{{ obra.dono }}</b> ({{ obra.dono.email }}){% else %}<i>nenhum vinculado — <a href="{% url 'obra_editar' obra.pk %}">vincular</a></i>{% endif %}
+      {% else %}🏗️ Construtora: <b>{{ obra.construtora.empresa|default:obra.construtora }}</b>{% if obra.construtora.telefone %} · 📞 {{ obra.construtora.telefone }}{% endif %}{% endif %}
+    </div>
+  </div>
+  <div class="acoes">
+    <a class="btn btn-sec" href="{% url 'relatorio' obra.pk %}">🖨️ Relatório</a>
+    {% if user.is_construtora %}
+      <a class="btn btn-sec" href="{% url 'obra_editar' obra.pk %}">Editar obra</a>
+      <a class="btn" href="{% url 'etapa_nova' obra.pk %}">+ Etapa</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="metricas">
+  <div class="metrica">
+    <div class="rotulo">Progresso</div><div class="valor">{{ obra.progresso }}%</div>
+    <div class="barra {% if obra.progresso == 100 %}verde{% endif %}"><div style="width:{{ obra.progresso }}%"></div></div>
+  </div>
+  <div class="metrica"><div class="rotulo">Orçamento</div><div class="valor" style="font-size:1.3rem">{{ obra.orcamento|brl }}</div></div>
+  <div class="metrica {% if obra.alerta_orcamento %}alerta{% endif %}">
+    <div class="rotulo">Gasto até agora</div><div class="valor" style="font-size:1.3rem">{{ obra.total_gasto|brl }}</div>
+    <div class="barra {% if obra.alerta_orcamento %}vermelha{% endif %}"><div style="width:{% if obra.percentual_gasto > 100 %}100{% else %}{{ obra.percentual_gasto }}{% endif %}%"></div></div>
+    <div class="muted">{{ obra.percentual_gasto }}% do orçamento</div>
+  </div>
+  <div class="metrica {% if obra.saldo < 0 %}alerta{% endif %}"><div class="rotulo">Saldo</div><div class="valor" style="font-size:1.3rem">{{ obra.saldo|brl }}</div></div>
+</div>
+
+{% if obra.alerta_orcamento %}
+<div class="msg msg-warning" style="margin-bottom:1rem">⚠️ Os gastos já chegaram a <b>{{ obra.percentual_gasto }}%</b> do orçamento.</div>
+{% endif %}
+
+<nav class="abas">
+  <a href="?aba=etapas" class="{% if aba == 'etapas' %}ativa{% endif %}">📋 Etapas</a>
+  <a href="?aba=diario" class="{% if aba == 'diario' %}ativa{% endif %}">📸 Diário de obra</a>
+  <a href="?aba=gastos" class="{% if aba == 'gastos' %}ativa{% endif %}">💰 Gastos</a>
+</nav>
+
+{% if aba == 'etapas' %}
+  {% if obra.descricao %}<p>{{ obra.descricao }}</p>{% endif %}
+  <div class="kanban">
+    {% for valor, rotulo, etapas in colunas %}
+    <div class="coluna {{ valor }}">
+      <h3>{{ rotulo }} <span class="contagem">{{ etapas|length }}</span></h3>
+      {% for e in etapas %}
+      <div class="tarefa {% if e.atrasada %}atrasada{% endif %}">
+        <div class="titulo">{{ e.titulo }}</div>
+        {% if e.descricao %}<div class="muted">{{ e.descricao }}</div>{% endif %}
+        <div class="rodape">
+          <span class="muted">📅 {{ e.prazo|date:"d/m/Y" }}{% if e.atrasada %} <span class="selo selo-atraso">atrasada</span>{% endif %}</span>
+          {% if e.status == status_etapa.CONCLUIDA %}
+            {% if e.aprovada %}<span class="selo selo-aprovada">✔ aprovada pelo dono</span>
+            {% else %}<span class="selo selo-aguardando">aguardando aprovação</span>{% endif %}
+          {% endif %}
+        </div>
+
+        {% if user.is_construtora %}
+        <div class="rodape">
+          <div class="mover">
+            {% if e.status != status_etapa.A_FAZER %}
+            <form method="post" action="{% url 'etapa_mover' e.pk %}">{% csrf_token %}<input type="hidden" name="status" value="{% if e.status == status_etapa.CONCLUIDA %}andamento{% else %}a_fazer{% endif %}"><button class="btn btn-sec btn-sm" title="Voltar">←</button></form>
+            {% endif %}
+            {% if e.status != status_etapa.CONCLUIDA %}
+            <form method="post" action="{% url 'etapa_mover' e.pk %}">{% csrf_token %}<input type="hidden" name="status" value="{% if e.status == status_etapa.A_FAZER %}andamento{% else %}concluida{% endif %}"><button class="btn btn-sm" title="Avançar">{% if e.status == status_etapa.A_FAZER %}Iniciar →{% else %}Concluir ✔{% endif %}</button></form>
+            {% endif %}
+          </div>
+          <span><a class="muted" href="{% url 'etapa_editar' e.pk %}">editar</a> · <a class="muted" href="{% url 'etapa_excluir' e.pk %}">excluir</a></span>
+        </div>
+        {% elif e.status == status_etapa.CONCLUIDA and not e.aprovada %}
+        <form method="post" action="{% url 'etapa_aprovar' e.pk %}" style="margin-top:.5rem">{% csrf_token %}<button class="btn btn-ok btn-sm">✔ Aprovar etapa</button></form>
+        {% endif %}
+
+        <details class="comentarios" {% if e.comentarios.all %}open{% endif %}>
+          <summary>💬 Comentários ({{ e.comentarios.all|length }})</summary>
+          {% for c in e.comentarios.all %}
+            <div class="comentario"><b>{{ c.autor }}</b>{% if c.autor.is_dono %} <span class="muted">(dono)</span>{% endif %}: {{ c.texto }}</div>
+          {% endfor %}
+          <form method="post" action="{% url 'comentario_novo' e.pk %}">{% csrf_token %}
+            {{ form_comentario.texto }}
+            <button class="btn btn-sec btn-sm" style="margin-top:.3rem">Comentar</button>
+          </form>
+        </details>
+      </div>
+      {% empty %}
+      <p class="muted" style="text-align:center;padding:1rem 0">Nenhuma etapa</p>
+      {% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+
+{% elif aba == 'diario' %}
+  {% if user.is_construtora %}
+  <div class="card" style="margin-bottom:1rem">
+    <h2>Novo registro</h2>
+    <form method="post" action="{% url 'diario_novo' obra.pk %}" enctype="multipart/form-data">{% csrf_token %}
+      <div class="form-linha">
+        <div class="campo"><label>Data</label>{{ form_diario.data }}</div>
+        <div class="campo"><label>Foto (opcional)</label>{{ form_diario.foto }}</div>
+      </div>
+      <div class="campo"><label>O que foi feito hoje?</label>{{ form_diario.texto }}</div>
+      <button class="btn">Adicionar ao diário</button>
+    </form>
+  </div>
+  {% endif %}
+  <div class="timeline">
+    {% for r in diario %}
+    <div class="card registro">
+      <div>
+        <div class="data">{{ r.data|date:"d/m/Y" }}</div>
+        <p style="margin:.3rem 0">{{ r.texto|linebreaksbr }}</p>
+        <div class="muted">por {{ r.autor }}</div>
+      </div>
+      {% if r.foto %}<a href="{{ r.foto.url }}" target="_blank"><img src="{{ r.foto.url }}" alt="Foto do registro"></a>{% endif %}
+    </div>
+    {% empty %}
+    <div class="card vazio"><div class="icone">📸</div><p>Nenhum registro no diário ainda.</p></div>
+    {% endfor %}
+  </div>
+
+{% elif aba == 'gastos' %}
+  <div class="duas-colunas">
+    <div class="card">
+      <h2>Lançamentos</h2>
+      {% if user.is_construtora %}
+      <form method="post" action="{% url 'gasto_novo' obra.pk %}" style="margin-bottom:1rem">{% csrf_token %}
+        <div class="form-linha">
+          <div class="campo" style="grid-column:span 2"><label>Descrição</label>{{ form_gasto.descricao }}</div>
+          <div class="campo"><label>Categoria</label>{{ form_gasto.categoria }}</div>
+          <div class="campo"><label>Valor (R$)</label>{{ form_gasto.valor }}</div>
+          <div class="campo"><label>Data</label>{{ form_gasto.data }}</div>
+          <div class="campo"><button class="btn" style="width:100%;justify-content:center">Lançar</button></div>
+        </div>
+      </form>
+      {% endif %}
+      {% if gastos %}
+      <table>
+        <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th class="num">Valor</th>{% if user.is_construtora %}<th></th>{% endif %}</tr></thead>
+        <tbody>
+          {% for g in gastos %}
+          <tr>
+            <td>{{ g.data|date:"d/m/Y" }}</td><td>{{ g.descricao }}</td><td>{{ g.get_categoria_display }}</td><td class="num">{{ g.valor|brl }}</td>
+            {% if user.is_construtora %}<td class="num"><form method="post" action="{% url 'gasto_excluir' g.pk %}">{% csrf_token %}<button class="btn-link" title="Remover">✕</button></form></td>{% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot><tr><td colspan="3"><b>Total</b></td><td class="num"><b>{{ obra.total_gasto|brl }}</b></td>{% if user.is_construtora %}<td></td>{% endif %}</tr></tfoot>
+      </table>
+      {% else %}<p class="muted">Nenhum gasto lançado.</p>{% endif %}
+    </div>
+    <div class="card">
+      <h2>Previsto x realizado</h2>
+      <div class="linha-info"><span>Orçamento</span><b>{{ obra.orcamento|brl }}</b></div>
+      <div class="linha-info"><span>Gasto</span><b>{{ obra.total_gasto|brl }}</b></div>
+      <div class="barra {% if obra.alerta_orcamento %}vermelha{% endif %}" style="height:12px"><div style="width:{% if obra.percentual_gasto > 100 %}100{% else %}{{ obra.percentual_gasto }}{% endif %}%"></div></div>
+      <div class="linha-info"><span>Saldo</span><b>{{ obra.saldo|brl }}</b></div>
+      <h3 style="margin-top:1.25rem">Por categoria</h3>
+      <ul class="lista-simples">
+        {% for rotulo, total in por_categoria %}<li class="linha-info"><span>{{ rotulo }}</span><b>{{ total|brl }}</b></li>
+        {% empty %}<li class="muted">—</li>{% endfor %}
+      </ul>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

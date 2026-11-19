@@ -1,0 +1,79 @@
+{% extends "core/base.html" %}
+{% load static obracheck %}
+{% block titulo %}Relatório — {{ obra.nome }}{% endblock %}
+{% block conteudo %}
+<div class="nao-imprimir acoes" style="justify-content:space-between">
+  <a href="{% url 'obra_detalhe' obra.pk %}">← Voltar para a obra</a>
+  <button class="btn" id="baixar-pdf" type="button" data-arquivo="relatorio-{{ obra.nome|slugify }}.pdf">⬇️ Baixar PDF</button>
+</div>
+<div class="relatorio" id="relatorio">
+  <div class="cabecalho">
+    <div>
+      <img class="relatorio-logo" src="{% static 'img/logo.png' %}" alt="ObraCheck">
+      <h1 style="margin-top:1rem">Relatório da obra: {{ obra.nome }}</h1>
+      <div class="muted">Emitido em {{ hoje|date:"d/m/Y" }}</div>
+    </div>
+    <span class="selo selo-{{ obra.status }}">{{ obra.get_status_display }}</span>
+  </div>
+
+  <table style="margin-bottom:1.5rem">
+    <tr><th>Endereço</th><td>{{ obra.endereco }}</td><th>Construtora</th><td>{{ obra.construtora.empresa|default:obra.construtora }}</td></tr>
+    <tr><th>Início</th><td>{{ obra.data_inicio|date:"d/m/Y" }}</td><th>Dono da obra</th><td>{{ obra.dono|default:"—" }}</td></tr>
+    <tr><th>Previsão</th><td>{{ obra.data_prevista|date:"d/m/Y" }}</td><th>Progresso</th><td>{{ obra.progresso }}%</td></tr>
+    <tr><th>Orçamento</th><td>{{ obra.orcamento|brl }}</td><th>Gasto</th><td>{{ obra.total_gasto|brl }} ({{ obra.percentual_gasto }}%)</td></tr>
+  </table>
+
+  <h2>Etapas</h2>
+  <table style="margin-bottom:1.5rem">
+    <thead><tr><th>Etapa</th><th>Prazo</th><th>Status</th><th>Aprovação</th></tr></thead>
+    {% for e in etapas %}
+    <tr>
+      <td>{{ e.titulo }}</td><td>{{ e.prazo|date:"d/m/Y" }}{% if e.atrasada %} <span class="selo selo-atraso">atrasada</span>{% endif %}</td>
+      <td>{{ e.get_status_display }}</td>
+      <td>{% if e.aprovada %}Aprovada em {{ e.aprovada_em|date:"d/m/Y" }}{% elif e.status == "concluida" %}Aguardando{% else %}—{% endif %}</td>
+    </tr>
+    {% empty %}<tr><td colspan="4" class="muted">Sem etapas.</td></tr>{% endfor %}
+  </table>
+
+  <h2>Gastos</h2>
+  <table style="margin-bottom:1.5rem">
+    <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th class="num">Valor</th></tr></thead>
+    {% for g in gastos %}
+    <tr><td>{{ g.data|date:"d/m/Y" }}</td><td>{{ g.descricao }}</td><td>{{ g.get_categoria_display }}</td><td class="num">{{ g.valor|brl }}</td></tr>
+    {% empty %}<tr><td colspan="4" class="muted">Sem gastos.</td></tr>{% endfor %}
+    <tr><td colspan="3"><b>Total</b></td><td class="num"><b>{{ obra.total_gasto|brl }}</b></td></tr>
+  </table>
+
+  <h2>Últimos registros do diário</h2>
+  <ul class="lista-simples">
+    {% for r in diario %}<li><b>{{ r.data|date:"d/m/Y" }}</b> — {{ r.texto }}</li>{% empty %}<li class="muted">Sem registros.</li>{% endfor %}
+  </ul>
+</div>
+{% endblock %}
+
+{% block depois %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+  // Gera o PDF do relatório direto no navegador e baixa o arquivo.
+  document.getElementById("baixar-pdf").addEventListener("click", async function () {
+    const botao = this, texto = botao.textContent;
+    const area = document.getElementById("relatorio");
+    if (typeof html2pdf === "undefined") { alert("Não foi possível carregar o gerador de PDF. Verifique a internet."); return; }
+    botao.disabled = true; botao.textContent = "Gerando PDF…";
+    area.classList.add("exportando");
+    try {
+      await html2pdf().set({
+        margin: [10, 10, 12, 10],
+        filename: botao.dataset.arquivo,
+        image: { type: "jpeg", quality: 0.96 },
+        html2canvas: { scale: 2, backgroundColor: "#ffffff", useCORS: true },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        pagebreak: { mode: ["css", "legacy"], avoid: ["tr", "li", "h2"] },
+      }).from(area).save();
+    } finally {
+      area.classList.remove("exportando");
+      botao.disabled = false; botao.textContent = texto;
+    }
+  });
+</script>
+{% endblock %}

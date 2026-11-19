@@ -1,0 +1,22 @@
+{% load obracheck %}
+<a class="card obra-card" href="{% url 'obra_detalhe' obra.pk %}">
+  <div class="topo-card">
+    <div>
+      <h3>{{ obra.nome }}</h3>
+      <div class="muted">📍 {{ obra.endereco }}</div>
+    </div>
+    <span class="selo selo-{{ obra.status }}">{{ obra.get_status_display }}</span>
+  </div>
+  <div style="margin-top:.9rem">
+    <div class="linha-info"><span>Progresso</span><b>{{ obra.progresso }}%</b></div>
+    <div class="barra {% if obra.progresso == 100 %}verde{% endif %}"><div style="width:{{ obra.progresso }}%"></div></div>
+  </div>
+  <div style="margin-top:.5rem">
+    <div class="linha-info"><span>Gasto {{ obra.total_gasto|brl }} de {{ obra.orcamento|brl }}</span><b>{{ obra.percentual_gasto }}%</b></div>
+    <div class="barra {% if obra.alerta_orcamento %}vermelha{% endif %}"><div style="width:{% if obra.percentual_gasto > 100 %}100{% else %}{{ obra.percentual_gasto }}{% endif %}%"></div></div>
+  </div>
+  <div class="linha-info" style="margin-top:.6rem">
+    {% if user.is_construtora %}<span>👤 {% if obra.dono %}{{ obra.dono }}{% else %}<i>sem dono vinculado</i>{% endif %}</span>{% else %}<span>🏗️ {{ obra.construtora.empresa|default:obra.construtora }}</span>{% endif %}
+    <span>Entrega: {{ obra.data_prevista|date:"d/m/Y" }}{% if obra.atrasada %} <span class="selo selo-atraso">atrasada</span>{% endif %}</span>
+  </div>
+</a>

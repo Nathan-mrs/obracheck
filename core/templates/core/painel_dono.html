@@ -1,0 +1,46 @@
+{% extends "core/base.html" %}
+{% load obracheck %}
+{% block titulo %}Minhas obras{% endblock %}
+{% block conteudo %}
+<div class="cabecalho">
+  <div>
+    <h1>Olá, {{ user.first_name|default:user.username }} 🏠</h1>
+    <div class="muted">Acompanhe as suas obras em tempo real</div>
+  </div>
+</div>
+
+{% if aguardando_aprovacao %}
+<div class="card aviso aviso-amarelo">
+  <h2>✋ Etapas esperando sua aprovação</h2>
+  <ul class="lista-simples">
+    {% for e in aguardando_aprovacao %}
+    <li style="display:flex;justify-content:space-between;align-items:center;gap:1rem">
+      <span><b>{{ e.titulo }}</b> — {{ e.obra.nome }}</span>
+      <form method="post" action="{% url 'etapa_aprovar' e.pk %}">{% csrf_token %}<button class="btn btn-ok btn-sm">Aprovar</button></form>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<div class="duas-colunas">
+  <div>
+    <h2>Minhas obras</h2>
+    {% if obras %}
+    <div class="grade-obras">{% for obra in obras %}{% include "core/_obra_card.html" %}{% endfor %}</div>
+    {% else %}
+    <div class="card vazio"><div class="icone">🏠</div><p>Nenhuma obra vinculada a você ainda.</p><p class="muted">Passe o seu e-mail (<b>{{ user.email }}</b>) para a construtora vincular a obra à sua conta.</p></div>
+    {% endif %}
+  </div>
+  <div class="card">
+    <h2>📸 Últimas atualizações</h2>
+    {% if ultimos_registros %}
+    <ul class="lista-simples">
+      {% for r in ultimos_registros %}
+      <li><div class="muted">{{ r.data|date:"d/m/Y" }} · <a href="{% url 'obra_detalhe' r.obra.pk %}?aba=diario">{{ r.obra.nome }}</a></div>{{ r.texto|truncatechars:110 }}</li>
+      {% endfor %}
+    </ul>
+    {% else %}<p class="muted">Sem registros no diário ainda.</p>{% endif %}
+  </div>
+</div>
+{% endblock %}

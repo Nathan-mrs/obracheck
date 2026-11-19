@@ -1,0 +1,202 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block titulo %}Gestão de pequenas obras{% endblock %}
+
+{% block hero %}
+<section class="lp-hero">
+  <div class="lp-anel" aria-hidden="true"></div>
+
+  <span class="lp-chip lp-chip-1"><i>📋</i>Kanban</span>
+  <span class="lp-chip lp-chip-2"><i>📸</i>Diário</span>
+  <span class="lp-chip lp-chip-3"><i>💰</i>Gastos</span>
+  <span class="lp-chip lp-chip-4"><i>✅</i>Aprovação</span>
+
+  <div class="container lp-hero-texto">
+    <img class="lp-hero-logo" src="{% static 'img/capacete-claro.png' %}" alt="Capacete ObraCheck">
+    <h1>Sua obra <em>organizada</em>,<br>do início à entrega.</h1>
+    <p>O ObraCheck conecta a construtora e o dono da obra: etapas, diário com fotos, gastos e aprovações num só lugar.</p>
+    <div class="lp-ctas">
+      <a class="btn" href="{% url 'cadastro' %}">Começar grátis →</a>
+      <a class="btn btn-sec" href="{% url 'login' %}">Já tenho conta</a>
+    </div>
+  </div>
+
+  {# Prévia ilustrativa do sistema (dados de exemplo) #}
+  <div class="container lp-previa revelar" aria-hidden="true">
+    <div class="card lp-mini">
+      <div class="lp-mini-topo"><b>Etapas</b><span class="muted">ver todas</span></div>
+      <div class="lp-linha"><span class="lp-ponto verde"></span>Demolição<span class="selo selo-aprovada">aprovada</span></div>
+      <div class="lp-linha"><span class="lp-ponto laranja"></span>Elétrica<span class="selo selo-andamento">andamento</span></div>
+      <div class="lp-linha"><span class="lp-ponto"></span>Pintura<span class="selo selo-pausada">a fazer</span></div>
+    </div>
+
+    <div class="card lp-mini lp-destaque">
+      <div class="lp-abas-mini"><span class="ativa">Obra</span><span>Diário</span><span>Gastos</span></div>
+      <div class="muted" style="margin-top:.9rem">Progresso da reforma</div>
+      <div class="lp-numero">68%</div>
+      <svg viewBox="0 0 200 60" class="lp-grafico">
+        <defs><linearGradient id="g1" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#FF6B1A" stop-opacity=".45"/><stop offset="1" stop-color="#FF6B1A" stop-opacity="0"/></linearGradient></defs>
+        <path d="M0 52 L25 46 L50 48 L75 34 L100 38 L125 24 L150 26 L175 12 L200 8 L200 60 L0 60 Z" fill="url(#g1)"/>
+        <path d="M0 52 L25 46 L50 48 L75 34 L100 38 L125 24 L150 26 L175 12 L200 8" fill="none" stroke="#FF8A3D" stroke-width="2.5" stroke-linejoin="round"/>
+        <circle cx="175" cy="12" r="4" fill="#fff" stroke="#FF6B1A" stroke-width="2"/>
+      </svg>
+      <div class="linha-info"><span>4 de 6 etapas</span><b style="color:var(--verde)">no prazo</b></div>
+    </div>
+
+    <div class="card lp-mini">
+      <div class="lp-mini-topo"><b>Previsto x realizado</b></div>
+      <div class="linha-info" style="margin-top:.6rem"><span>Orçamento</span><b>R$ 38.000</b></div>
+      <div class="linha-info"><span>Gasto</span><b>R$ 16.300</b></div>
+      <div class="barra" style="height:10px"><div style="width:43%"></div></div>
+      <div class="linha-info"><span>Material</span><b>R$ 9.800</b></div>
+      <div class="linha-info"><span>Mão de obra</span><b>R$ 6.500</b></div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block depois %}
+<section class="lp-faixa">
+  <div class="container">
+    <p class="muted">Feito para pequenas obras e reformas</p>
+    <div class="lp-selos revelar">
+      <span>📱 Funciona no celular</span>
+      <span>🔒 Acesso por perfil</span>
+      <span>📄 Relatório em PDF</span>
+      <span>⚡ Sem instalação</span>
+    </div>
+  </div>
+</section>
+
+<section class="lp-secao" id="recursos">
+  <div class="container">
+    <div class="lp-titulo revelar">
+      <h2>Tudo da obra<br>num só lugar</h2>
+      <p class="muted">Menos WhatsApp perdido, mais controle de verdade.</p>
+    </div>
+
+    <div class="card lp-grande revelar">
+      <div>
+        <h3>Gastos sob controle,<br>sem planilha.</h3>
+        <p class="muted">Lance cada despesa e acompanhe o previsto x realizado. O sistema avisa quando a obra passa de 90% do orçamento.</p>
+        <a class="btn" href="{% url 'cadastro' %}">Começar agora →</a>
+      </div>
+      <div class="lp-grafico-grande" aria-hidden="true">
+        <svg viewBox="0 0 400 160" preserveAspectRatio="none">
+          <defs><linearGradient id="g2" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#FF6B1A" stop-opacity=".55"/><stop offset="1" stop-color="#FF6B1A" stop-opacity="0"/></linearGradient></defs>
+          <path d="M0 120 C40 60 70 40 100 90 S160 150 200 80 S270 20 300 60 S360 110 400 30 L400 160 L0 160 Z" fill="url(#g2)"/>
+          <path d="M0 120 C40 60 70 40 100 90 S160 150 200 80 S270 20 300 60 S360 110 400 30" fill="none" stroke="#FF8A3D" stroke-width="3"/>
+        </svg>
+        <div class="lp-eixo"><span>Out</span><span>Nov</span><span class="ativo">Dez</span><span>Jan</span><span>Fev</span></div>
+      </div>
+    </div>
+
+    <div class="recursos revelar-filhos">
+      <div class="card"><h3>📋 Kanban de etapas</h3><p class="muted">A fazer, em andamento e concluída, com prazos e alerta de atraso.</p></div>
+      <div class="card"><h3>📸 Diário de obra</h3><p class="muted">Registro diário do que foi feito, com foto.</p></div>
+      <div class="card"><h3>💰 Controle de gastos</h3><p class="muted">Previsto x realizado e alerta ao passar de 90% do orçamento.</p></div>
+      <div class="card"><h3>✅ Aprovação do cliente</h3><p class="muted">O dono aprova as etapas e comenta, tudo registrado.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="lp-secao" id="como-funciona">
+  <div class="container">
+    <div class="lp-titulo revelar">
+      <h2>Obra não é sorte.<br><span class="lp-cinza">É processo.</span></h2>
+      <p class="muted">Cada perfil vê o que precisa. A construtora organiza, o dono acompanha e aprova.</p>
+    </div>
+    <div class="lp-perfis revelar-filhos">
+      <div class="card">
+        <span class="selo selo-andamento">Construtora</span>
+        <h3>🏗️ Para quem executa</h3>
+        <ol class="lp-passos">
+          <li>Cadastre a obra e vincule o dono pelo e-mail</li>
+          <li>Organize as etapas no Kanban</li>
+          <li>Registre o diário com fotos e lance os gastos</li>
+        </ol>
+      </div>
+      <div class="card">
+        <span class="selo selo-aprovada">Dono da obra</span>
+        <h3>🏠 Para quem contrata</h3>
+        <ol class="lp-passos">
+          <li>Acompanhe o progresso em tempo real</li>
+          <li>Veja fotos e confira cada gasto</li>
+          <li>Aprove as etapas concluídas e comente</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="lp-secao" id="planos">
+  <div class="container">
+    <div class="lp-planos-titulo revelar" aria-hidden="true">Planos</div>
+    <div class="lp-planos revelar-filhos">
+      <div class="card lp-plano">
+        <span class="lp-etiqueta">🎓 Disponível agora</span>
+        <h3>Plano <b>INICIAL</b></h3>
+        <ul class="lp-lista">
+          <li>Até 3 obras ativas</li>
+          <li>Kanban, diário e gastos</li>
+          <li>Aprovação do cliente</li>
+          <li>Relatório em PDF</li>
+        </ul>
+        <div class="lp-preco">Grátis<small>durante o MVP</small></div>
+        <a class="btn" href="{% url 'cadastro' %}">Criar conta</a>
+      </div>
+
+      <div class="card lp-plano lp-plano-destaque">
+        <span class="lp-etiqueta">⭐ Recomendado</span>
+        <h3>Plano <b>PRO</b></h3>
+        <ul class="lp-lista">
+          <li>Obras ilimitadas</li>
+          <li>Fotos em alta resolução</li>
+          <li>Notificações por e-mail</li>
+          <li>Suporte via WhatsApp</li>
+        </ul>
+        <div class="lp-preco">R$ 19,90<small>por mês</small></div>
+        <button class="btn" type="button" disabled>Em breve</button>
+      </div>
+
+      <div class="card lp-plano">
+        <span class="lp-etiqueta">🏢 Para equipes</span>
+        <h3>Plano <b>EMPRESA</b></h3>
+        <ul class="lp-lista">
+          <li>Tudo do PRO</li>
+          <li>Vários usuários na construtora</li>
+          <li>Relatórios personalizados</li>
+          <li>Sua logo no relatório</li>
+        </ul>
+        <div class="lp-preco">R$ 49,90<small>por mês</small></div>
+        <button class="btn" type="button" disabled>Em breve</button>
+      </div>
+    </div>
+    <p class="muted lp-nota">Planos pagos ainda indisponíveis — valores ilustrativos. No MVP, todos os recursos são gratuitos.</p>
+  </div>
+</section>
+
+<section class="lp-cta-final">
+  <div class="container">
+    <div class="card revelar">
+      <img src="{% static 'img/capacete-claro.png' %}" alt="" class="lp-cta-logo">
+      <h2>Pronto para organizar sua próxima obra?</h2>
+      <p class="muted">Crie a conta em menos de um minuto.</p>
+      <a class="btn" href="{% url 'cadastro' %}">Começar grátis →</a>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Revela os blocos suavemente quando entram na tela.
+  (function () {
+    document.documentElement.classList.add("anima");
+    const alvos = document.querySelectorAll(".revelar, .revelar-filhos");
+    if (!("IntersectionObserver" in window)) { alvos.forEach(a => a.classList.add("visivel")); return; }
+    const obs = new IntersectionObserver((itens) => {
+      itens.forEach((i) => { if (i.isIntersecting) { i.target.classList.add("visivel"); obs.unobserve(i.target); } });
+    }, { threshold: 0.15, rootMargin: "0px 0px -40px 0px" });
+    alvos.forEach(a => obs.observe(a));
+  })();
+</script>
+{% endblock %}

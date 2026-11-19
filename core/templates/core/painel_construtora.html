@@ -1,0 +1,37 @@
+{% extends "core/base.html" %}
+{% load obracheck %}
+{% block titulo %}Painel{% endblock %}
+{% block conteudo %}
+<div class="cabecalho">
+  <div>
+    <h1>Olá, {{ user.first_name|default:user.username }} 👷</h1>
+    <div class="muted">{{ user.empresa|default:"Painel da construtora" }}</div>
+  </div>
+  <a class="btn" href="{% url 'obra_nova' %}">+ Nova obra</a>
+</div>
+
+<div class="metricas">
+  <div class="metrica"><div class="rotulo">Obras ativas</div><div class="valor">{{ ativas }}</div></div>
+  <div class="metrica"><div class="rotulo">Obras concluídas</div><div class="valor">{{ concluidas }}</div></div>
+  <div class="metrica {% if etapas_atrasadas %}alerta{% endif %}"><div class="rotulo">Etapas atrasadas</div><div class="valor">{{ etapas_atrasadas|length }}</div></div>
+  <div class="metrica"><div class="rotulo">Total gasto</div><div class="valor" style="font-size:1.3rem">{{ total_gasto|brl }}</div><div class="muted">de {{ total_orcado|brl }} orçados</div></div>
+</div>
+
+{% if etapas_atrasadas %}
+<div class="card aviso aviso-vermelho">
+  <h2>⚠️ Etapas atrasadas</h2>
+  <ul class="lista-simples">
+    {% for e in etapas_atrasadas %}
+    <li><a href="{% url 'obra_detalhe' e.obra.pk %}"><b>{{ e.titulo }}</b></a> — {{ e.obra.nome }} <span class="muted">· prazo {{ e.prazo|date:"d/m/Y" }}</span></li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<h2>Minhas obras</h2>
+{% if obras %}
+<div class="grade-obras">{% for obra in obras %}{% include "core/_obra_card.html" %}{% endfor %}</div>
+{% else %}
+<div class="card vazio"><div class="icone">🏗️</div><p>Você ainda não cadastrou nenhuma obra.</p><a class="btn" href="{% url 'obra_nova' %}">Cadastrar primeira obra</a></div>
+{% endif %}
+{% endblock %}
